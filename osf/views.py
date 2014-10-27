@@ -41,7 +41,7 @@ def proper_creation_request(data):
 def create_new_project(request):
     print "new proj called"
     if request.method == 'POST':
-        #print str(request.DATA)
+        print str(request.DATA)
 
         p_id = int(request.DATA['project_id'])
 
@@ -49,7 +49,7 @@ def create_new_project(request):
             return Response("proper input not provided",status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            max_p_id = Timeline.objects.
+
             timeline = Timeline.objects.get(project_id=p_id)
 
            #if project with given project id exists, then throw error.
@@ -99,9 +99,9 @@ def project_detail(request):
             d = datetime.datetime(month=int(url_date[0]), day=int(url_date[1]),year=int(url_date[2])) # 09-20-2014
     #########################POTENTIALLY ADD day+1 HERE since you want to get data back from anytime on input date as well. THUS should start checking from one day after input day.
         try:
-            print 1
+
             t = Timeline.objects.filter(project_id=int(request.GET['project_id']))
-            print str(t)
+
             #actual values of the historical object
             author = ""
             title=""
@@ -118,14 +118,15 @@ def project_detail(request):
 
             #sort by date (note that date in this case SHOULD actually in ms so its all good but it is not currently :( )
             hist = sorted(t, key=lambda t: t.date, reverse=True)
-            print 3
+            """
             for i in hist:
                 print i.title, i.title=="", i.title==None, i.title is not None
             for i in hist:
                 print i.wiki
             print "#################################################################"
+            """
             for h in hist:
-                print 4
+
                 #print h.date,d,'this is it'
                 #print "historical date:",h.date,"input date:", d
                 #SHOULD MAKE FUNCTION HERE TO DRY BUT NO TIME RIGHT NOW!!
@@ -140,20 +141,20 @@ def project_detail(request):
                     db_date = datetime.datetime.strptime(str(h.date)[:-6], "%Y-%m-%d %H:%M:%S")
 
                     if db_date <= d:#00:00:00+00:00
-                        print db_date,"should be less than or equal to", d
+                        #print db_date,"should be less than or equal to", d
                         if not hasauthor or not hastitle or not haswiki:
 
                             if not hasauthor and not is_empty(h.author):
                                 author = h.author
-                                print "author:",author
+                                #print "author:",author
                                 hasauthor = True
                             if not hastitle and not is_empty(h.title):
                                 title = h.title
-                                print "title:",title, "is_empty(h.title) returned true in this case"
+                                #print "title:",title, "is_empty(h.title) returned true in this case"
                                 hastitle = True
                             if not haswiki and not is_empty(h.wiki):
                                 wiki = h.wiki
-                                print "wiki:",wiki
+                                #print "wiki:",wiki
                                 haswiki=True
 
                         else:
@@ -163,15 +164,15 @@ def project_detail(request):
                     if not hasauthor or not hastitle or not haswiki:
                         if not hasauthor and not is_empty(h.author):
                             author = h.author
-                            print "author:",author
+                            #print "author:",author
                             hasauthor = True
                         if not hastitle and not is_empty(h.title):
                             title = h.title
-                            print "title:",title, "is_empty(h.title) returned true in this case"
+                            #print "title:",title, "is_empty(h.title) returned true in this case"
                             hastitle = True
                         if not haswiki and not is_empty(h.wiki):
                             wiki = h.wiki
-                            print "wiki:",wiki
+                            #print "wiki:",wiki
                             haswiki=True
 
                     else:
@@ -181,8 +182,8 @@ def project_detail(request):
                                 'author':author,
                                 'wiki':wiki
             }
-            print str(most_recent_hist)
-            print "#################################################################"
+            #print str(most_recent_hist)
+            #print "#################################################################"
 
         except:
             return Response("failed to create proper historical object", status=status.HTTP_400_BAD_REQUEST)
@@ -213,32 +214,61 @@ def is_empty(x):
 def update_project(request):
     if request.method=="POST":
         print '"update project called'
-        print str(request.DATA)
+        #print str(request.DATA)
         if 'project_id' not in request.DATA or not request.DATA['project_id']:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         if 'date' not in request.DATA or not request.DATA['date']: #written yyyy-dd-mm
             return Response("must add date for when this historical value was added", status=status.HTTP_400_BAD_REQUEST)
         try:
-            print 1
+
             url_date = request.DATA['date'].split("-")
             d = datetime.datetime(month=int(url_date[0]), day=int(url_date[1]),year=int(url_date[2])) # 09-20-2014
             p_id = int(request.DATA['project_id'])
-            t = Timeline.objects.filter(project_id=p_id)
-            print 2
+
+
+
+
+
 
             #sanitize data to use for new input to table
             data = request.DATA.copy()
             data['date']=d
             data['project_id'] = p_id
 
+            #if the number of projects is multiple of 10 then put data.
+            t = Timeline.objects.filter(project_id=p_id)
+            if len(t)%10==0:
+                hist = sorted(t, key=lambda t: t.date, reverse=True)
+                has_title = 'title' in data
+                has_wiki = 'wiki' in data
+                has_author = 'author' in data
+
+                for h in hist:
+                    if not has_title or not has_wiki or not has_author:
+                        if not has_author and not is_empty(h.author):
+                            data['author'] = h.author
+                            #print "author:",author
+                            has_author = True
+                        if not has_title and not is_empty(h.title):
+                            data['title'] = h.title
+                            #print "title:",title, "is_empty(h.title) returned true in this case"
+                            has_title = True
+                        if not has_wiki and not is_empty(h.wiki):
+                            data['wiki'] = h.wiki
+                            #print "wiki:",wiki
+                            has_wiki=True
+                    else:
+                        break
+
+
             #data should have date, project_id and whatever values that are actually supposed to be updated
             serializer = TimelineSerializer(data=data)
-            print 3
+
             if serializer.is_valid():
-                print 4
-                print serializer.data
+
+                #print serializer.data
                 serializer.save()
-                print 5
+
                 out = {p_id: "Project Updated."}
                 return Response(out, status=status.HTTP_206_PARTIAL_CONTENT)
             else:

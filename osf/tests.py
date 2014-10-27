@@ -119,6 +119,7 @@ class TestTimelineEndpoints(unittest.TestCase):
 
     def setUp(self):
         self.seq = range(10)
+
     def tearDown(self):
         delete_all_projects(9000)
 
@@ -249,6 +250,30 @@ class TestTimelineEndpoints(unittest.TestCase):
         q = get_project(3000,date="09-20-2014", port=9000)
         original['title']='t1'
         self.assertEqual(original,q)
+
+        delete_all_projects(9000)
+
+
+    def test_adding_snapshots(self):
+
+        original = {}
+        original['project_id'] = 3000
+        original['title']='t1'
+        original['wiki']='w1'
+        original['author']='a1'
+
+
+        x= create_project(3000,'09-20-2014', 't1','w1','a1', port=9000)
+        self.assertEqual({3000:"Project Created."}, x)
+
+
+        original['title']='t2'
+
+        for i in range(1,100):
+            y= update_project(3000, date="09-21-"+str(2014+i), title= "t"+str(2+i), port=9000)
+            self.assertEqual({3000: "Project Updated."},y)
+
+
 
         delete_all_projects(9000)
 

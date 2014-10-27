@@ -92,6 +92,7 @@ TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,  'templates'),
 )
 
+#APPEND_SLASH=False
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
