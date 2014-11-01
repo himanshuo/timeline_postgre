@@ -17,7 +17,7 @@ class Timeline(models.Model):
     date = models.DateTimeField(blank=False)#cant be empty since by default blank=False(+specified)
 
     #class Meta:
-    #    ordering = ['project_id', '-date']#awesome optimization that keeps your timeline sorted. cant use though in benchmarking.:(
+    #    ordering = ['project_id', '-date']#awesome optimization that keeps your timeline sorted. Do so in mongo as well to take advantage of it. :)
 
 
 

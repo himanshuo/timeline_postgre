@@ -237,7 +237,7 @@ def update_project(request):
 
             #if the number of projects is multiple of 10 then put data.
             t = Timeline.objects.filter(project_id=p_id)
-            if len(t)%10==0:
+            if len(t)%250==0:
                 hist = sorted(t, key=lambda t: t.date, reverse=True)
                 has_title = 'title' in data
                 has_wiki = 'wiki' in data
